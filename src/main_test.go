@@ -33,7 +33,7 @@ func TestMax(testing *testing.T) {
 		expectedResult int
 	}{
 		{3, 5, 5},
-		{3, 2, 2},
+		{3, 2, 3},
 	}
 
 	for _, test := range tests {
@@ -62,6 +62,39 @@ func TestFibonacci(testing *testing.T) {
 	}
 }
 
-// go test -coverprofile=coverage.out
+func TestGetUserById(testing *testing.T) {
+	tests := []struct {
+		id             int
+		getUserById    func()
+		expectedResult User
+	}{
+		{id: 1,
+			getUserById: func() {
+				GetUserById = func(id int) (User, error) {
+					return User{id: 1}, nil
+				}
+			},
+			expectedResult: User{id: 1},
+		},
+	}
+	originalGetUserById := GetUserById
+	for _, test := range tests {
+		test.getUserById()
+		user, err := GetUserById(test.id)
+		if err != nil {
+			testing.Errorf("Error when getting user by id")
+		}
+
+		if user.id != test.expectedResult.id {
+			testing.Errorf("GetUserById was incorrect, got %d, expected %d", user.id, test.expectedResult.id)
+		}
+	}
+	GetUserById = originalGetUserById
+}
+
+//go test
+//go test --cpuprofile=cpu.out
 // go tool cover -func=coverage.out
 // go tool cover -html=coverage.out
+// go test -coverprofile=coverage.out
+// go tool pprof cpu.out
